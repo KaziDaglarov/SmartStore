@@ -3,7 +3,7 @@ from django.db import models
 class Manufacturer(models.Model):
     name = models.CharField('Производитель', max_length=100, unique=True)
     description = models.TextField('Описание')
-    logo = models.ImageField('Логотип производителя', upload_to='manufacturers/')
+    logo = models.ImageField('Логотип производителя', upload_to='manufacturers/', null=True)
     url = models.SlugField(max_length=100, unique=True)
 
     def __str__(self):
@@ -13,10 +13,12 @@ class Manufacturer(models.Model):
         verbose_name = 'Производитель'
         verbose_name_plural = 'Производители'
 
+
+
 class Phone(models.Model):
     name = models.CharField('Название телефона', max_length=100, unique=True)
     description = models.TextField('Описание')
-    poster = models.ImageField('Постер телефона', upload_to='phones/')
+    poster = models.ImageField('Постер телефона', upload_to='phones/', null=True)
     manufacturer = models.ForeignKey(Manufacturer, verbose_name='Производитель', on_delete=models.SET_NULL, null=True)
     price = models.PositiveIntegerField('Цена', default=0)
     number_of_sim_cards = models.PositiveIntegerField('Количество сим-карт', default=60)
@@ -28,9 +30,16 @@ class Phone(models.Model):
     number_of_main_cameras = models.PositiveIntegerField('Каличество основных камер', default=0)
     built_in_memory = models.PositiveIntegerField('Обьем встроенной памяти', default=0)
     ram = models.PositiveIntegerField('Оперативная память', default=0)
-    number_of_processor_cores = models.PositiveIntegerField('Каличество ядер процессора', default=0)
     battery_capacity = models.PositiveIntegerField('Емкость аккумулятора', default=0)
     phone_release_date = models.DateField('Дата выхода телефона')
+    operating_system = models.ForeignKey('OperatingSystem', verbose_name='Операционная система', on_delete=models.SET_NULL, null=True)
+    wireless_interfaces = models.ManyToManyField('WirelessInterfaces', verbose_name='Безпроводной интерфейс')
+    communication_standards = models.ManyToManyField('CommunicationStandards', verbose_name='Стандарт связи')
+    processor_model = models.ForeignKey('ProcessorModel', verbose_name='Модель процессора', on_delete=models.SET_NULL, null=True)
+    screen_type = models.ForeignKey('ScreenType', verbose_name='Тип экрана', on_delete=models.SET_NULL, null=True)
+    headphone_jack = models.ForeignKey('HeadphoneJack', verbose_name='Разьем для наушников', on_delete=models.SET_NULL, null=True)
+    charging_connector_type = models.ForeignKey('ChargingConnectorType', verbose_name='Тип разъема для зарядки', on_delete=models.SET_NULL, null=True)
+    color = models.ForeignKey('Color', verbose_name='Цвет', on_delete=models.SET_NULL, null=True)
     url = models.SlugField(max_length=100, unique=True)
 
     class Meta:
@@ -39,11 +48,8 @@ class Phone(models.Model):
 
 
 
-
-
 class OperatingSystem(models.Model):
     name = models.CharField('Операционная система', unique=True, max_length=100)
-    phone = models.ForeignKey(Phone, verbose_name='Телефон', on_delete=models.SET_NULL, null=True)
 
     def __str__(self):
         return self.name
@@ -53,9 +59,9 @@ class OperatingSystem(models.Model):
         verbose_name_plural = 'Операционные системы'
 
 
+
 class WirelessInterfaces(models.Model):
     name = models.CharField('Безпроводной интерфейс', unique=True, max_length=100)
-    phone = models.ManyToManyField(Phone, verbose_name='Телефон')
 
     def __str__(self):
         return self.name
@@ -68,7 +74,6 @@ class WirelessInterfaces(models.Model):
 
 class CommunicationStandards(models.Model):
     name = models.CharField('Стандарт связи', unique=True, max_length=100)
-    phone = models.ManyToManyField(Phone, verbose_name='Телефон')
 
     def __str__(self):
         return self.name
@@ -81,7 +86,7 @@ class CommunicationStandards(models.Model):
 
 class ProcessorModel(models.Model):
     name = models.CharField('Модель процессора', unique=True, max_length=100)
-    phone = models.ForeignKey(Phone, verbose_name='Телефон', on_delete=models.SET_NULL, null=True)
+    number_of_processor_cores = models.PositiveIntegerField('Каличество ядер процессора', default=0)
 
     def __str__(self):
         return self.name
@@ -94,7 +99,6 @@ class ProcessorModel(models.Model):
 
 class ScreenType(models.Model):
     name = models.CharField('Тип экрана', unique=True, max_length=100)
-    phone = models.ForeignKey(Phone, verbose_name='Телефон', on_delete=models.SET_NULL, null=True)
 
     def __str__(self):
         return self.name
@@ -105,10 +109,8 @@ class ScreenType(models.Model):
 
 
 
-
 class HeadphoneJack(models.Model):
     name = models.CharField('Разьем для наушников', unique=True, max_length=100)
-    phone = models.ForeignKey(Phone, verbose_name='Телефон', on_delete=models.SET_NULL, null=True)
 
     def __str__(self):
         return self.name
@@ -119,7 +121,6 @@ class HeadphoneJack(models.Model):
 
 class ChargingConnectorType(models.Model):
     name = models.CharField('Тип разъема для зарядки', unique=True, max_length=100)
-    phone = models.ForeignKey(Phone, verbose_name='Телефон', on_delete=models.SET_NULL, null=True)
 
     def __str__(self):
         return self.name
@@ -132,7 +133,6 @@ class ChargingConnectorType(models.Model):
 
 class Color(models.Model):
     name = models.CharField('Цвет', unique=True, max_length=100)
-    phone = models.ForeignKey(Phone, verbose_name='Телефон', on_delete=models.SET_NULL, null=True)
 
     def __str__(self):
         return self.name
@@ -140,8 +140,6 @@ class Color(models.Model):
     class Meta:
         verbose_name = 'Цвет'
         verbose_name_plural = 'Цвета'
-
-
 
 
 
@@ -155,6 +153,8 @@ class PhoneShots(models.Model):
         verbose_name = 'Фотография телефона'
         verbose_name_plural = 'Фотографии телефонов'
 
+
+
 class RatingStar(models.Model):
     value = models.PositiveSmallIntegerField('Значение', default=0)
 
@@ -164,6 +164,7 @@ class RatingStar(models.Model):
     class Meta:
         verbose_name = 'Звезда рейтинга'
         verbose_name_plural = 'Звезды рейтинга'
+
 
 
 class Rating(models.Model):
@@ -177,6 +178,8 @@ class Rating(models.Model):
     class Meta:
         verbose_name = 'Рейтинг'
         verbose_name_plural = 'Рейтинги'
+
+
 
 class Reviews(models.Model):
     email = models.EmailField()
