@@ -1,9 +1,9 @@
 from django.db import models
+from django.urls import reverse
+
 
 class Manufacturer(models.Model):
     name = models.CharField('Производитель', max_length=100, unique=True)
-    description = models.TextField('Описание')
-    logo = models.ImageField('Логотип производителя', upload_to='manufacturers/', null=True)
     url = models.SlugField(max_length=100, unique=True)
 
     def __str__(self):
@@ -17,11 +17,11 @@ class Manufacturer(models.Model):
 
 class Phone(models.Model):
     name = models.CharField('Название телефона', max_length=100, unique=True)
-    description = models.TextField('Описание')
+    description = models.TextField('Описание', null=True)
     poster = models.ImageField('Постер телефона', upload_to='phones/', null=True)
     manufacturer = models.ForeignKey(Manufacturer, verbose_name='Производитель', on_delete=models.SET_NULL, null=True)
     price = models.PositiveIntegerField('Цена', default=0)
-    number_of_sim_cards = models.PositiveIntegerField('Количество сим-карт', default=60)
+    number_of_sim_cards = models.PositiveIntegerField('Количество сим-карт', default=2)
     screen_size = models.FloatField('Диагональ экрана')
     screen_refresh_rate = models.PositiveIntegerField('Частота обновления экрана', default=60)
     screen_resolution = models.CharField('Разрешение экрана', max_length=100)
@@ -40,7 +40,14 @@ class Phone(models.Model):
     headphone_jack = models.ForeignKey('HeadphoneJack', verbose_name='Разьем для наушников', on_delete=models.SET_NULL, null=True)
     charging_connector_type = models.ForeignKey('ChargingConnectorType', verbose_name='Тип разъема для зарядки', on_delete=models.SET_NULL, null=True)
     color = models.ForeignKey('Color', verbose_name='Цвет', on_delete=models.SET_NULL, null=True)
+    draft = models.BooleanField('Черновик', default=False)
     url = models.SlugField(max_length=100, unique=True)
+
+    def __str__(self):
+        return self.name
+
+    def get_absolute_url(self):
+        return reverse('phone', kwargs={'slug': self.url})
 
     class Meta:
         verbose_name = 'Смартфон'
